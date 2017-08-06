@@ -1,0 +1,22 @@
+{
+  "name": "weibo-backup",
+  "version": "1.0.0",
+  "description": "weibo backup tool",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/codepiano/weibo-backup",
+  "keywords": [
+    "weibo",
+    "backup"
+  ],
+  "author": "codepiano",
+  "license": "GPL",
+  "devDependencies": {
+    "electron": "~1.6.2"
+  },
+  "dependencies": {
+    "jquery": "^3.2.1"
+  }
+}
