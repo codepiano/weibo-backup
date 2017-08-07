@@ -15,8 +15,7 @@ let mainWindow
 function createWindow () {
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        fullscreen: true,
-        'node-integration': false
+        fullscreen: true
     })
     mainWindow.maximize()
 
@@ -37,7 +36,6 @@ function createWindow () {
         // when you should delete the corresponding element.
         mainWindow = null
     })
-    mainWindow.webContents.executeJavaScript(`mainWindow.`);
 }
 
 // This method will be called when Electron has finished
@@ -65,3 +63,4 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 // win.webContents.on('dom-ready', () => {
+require('./ipc-main.js')
