@@ -3,6 +3,7 @@
 // All of the Node.js APIs are available in this process.
 // ipc
 const {ipcRenderer} = require('electron')
+var flag=false
 
 $(document).ready(function(){
     var webview = $('#webview')
@@ -12,6 +13,7 @@ $(document).ready(function(){
     // 监听页面跳转事件
     webview.on("did-navigate-in-page", function(event){
         var url = event.originalEvent.url
+        console.log(url)
         var isPersonMainPage = url.match(regex)
         if(isPersonMainPage) {
             var saveContent = ipcRenderer.sendSync('ask-user', true)
@@ -22,8 +24,21 @@ $(document).ready(function(){
     })
 
     webview.on('ipc-message', (event) => {
-        var number = event.originalEvent.args[0]
-        console.log(number)
+        var result = {}
+        var channel = event.originalEvent.channel
+        var page = event.originalEvent.args[0]
+        var weibo = event.originalEvent.args[1]
+        console.log(channel)
+        console.log(page)
+        console.log(weibo)
+    })
+
+    webview.on('console-message', (e) => {
+        console.log('Guest page logged a message:', e.originalEvent.message)
+    })
+
+    webview.on('dom-ready', () => {
+        webview[0].openDevTools()
     })
 })
 
