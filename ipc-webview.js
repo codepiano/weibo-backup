@@ -1,12 +1,17 @@
 const {ipcRenderer} = require('electron')
 var default_page_detail_number = 45
 var regex = /weibo\.com\/\w+\/profile.*is_all=1/g
+var isSaving = false
 global.observer = new MutationObserver(processLazyLoad)
 
+ipcRenderer.on('scroll', (event, arg) => {
+    scrollToBottom()
+})
 
 ipcRenderer.on('save', (event, arg) => {
     // 添加 dom 事件监听
     addMutationObserver()
+    isSaving = true
 
     var index = 1
     var number = getWeiboNumber()
@@ -14,13 +19,11 @@ ipcRenderer.on('save', (event, arg) => {
     var totalPageNumber = getTotalPageNumber()
     console.log(totalPageNumber)
     if(totalPageNumber == 0) {
-        ipcRenderer.sendToHost('error', 'get total page number error: 0')
+        ipcRenderer.sendToHost('error', {error: "no_total_page_number", message: "get total page number error: 0"})
     }
-    if(index < totalPageNumber) {
+    if(index <= totalPageNumber) {
         // 触发懒加载
         scrollToBottom()
-    } else {
-
     }
 })
 
@@ -65,8 +68,15 @@ function processLazyLoad(mutations){
                     texts.push(item.outerHTML)
                 })
                 ipcRenderer.sendToHost('page', currentPage, texts)
+                // 本页微博加载完毕，到下一页
+                try {
+                    goToNextPage()
+                } catch(e) {
+                    console.log("没有获取到下一页按钮!", e)
+                    ipcRenderer.sendToHost('exception', e)
+                }
             } else {
-                // 继续出发懒加载
+                // 继续触发懒加载
                 scrollToBottom()
             }
         } else {
@@ -94,4 +104,16 @@ function getCurrentPageNumber() {
 function getWeiboDetailItems() {
     var feedList = document.querySelector("div[node-type='feed_list']")
     return document.querySelectorAll("div[action-type='feed_list_item']")
+}
+
+function goToNextPage() {
+    var nextPageButton = document.querySelector("a.page.next.S_txt1.S_line1")
+    if(nextPageButton) {
+        nextPageButton.click()
+    } else {
+        throw {
+            name: "no_page_button_exception",
+            message: "can not find next page button!"
+        };
+    }
 }

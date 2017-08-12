@@ -3,7 +3,7 @@
 // All of the Node.js APIs are available in this process.
 // ipc
 const {ipcRenderer} = require('electron')
-var flag=false
+var isSaving = false
 
 $(document).ready(function(){
     var webview = $('#webview')
@@ -16,21 +16,37 @@ $(document).ready(function(){
         console.log(url)
         var isPersonMainPage = url.match(regex)
         if(isPersonMainPage) {
-            var saveContent = ipcRenderer.sendSync('ask-user', true)
-            if(saveContent) {
-                webview[0].send('save', true)
+            // 当前没有在保存，弹窗询问是否保存
+            if(!isSaving) {
+                var saveContent = ipcRenderer.sendSync('ask-user', true)
+                if(saveContent) {
+                    isSaving = true
+                    webview[0].send('save', true)
+                } else {
+                    isSaving =false
+                }
+            } else {
+                webview[0].send('scroll', true)
             }
+        } else {
+            isSaving =false
         }
     })
 
+    // 处理 webview 中的 ipc 消息
     webview.on('ipc-message', (event) => {
         var result = {}
         var channel = event.originalEvent.channel
-        var page = event.originalEvent.args[0]
-        var weibo = event.originalEvent.args[1]
         console.log(channel)
-        console.log(page)
-        console.log(weibo)
+        if(channel === 'error') {
+            error = event.originalEvent.args[0]
+            console.log(error.message)
+        } else if (channel === 'page'){
+            var page = event.originalEvent.args[0]
+            var weibo = event.originalEvent.args[1]
+            console.log(page)
+            console.log(weibo)
+        }
     })
 
     webview.on('console-message', (e) => {
@@ -41,4 +57,3 @@ $(document).ready(function(){
         webview[0].openDevTools()
     })
 })
-
