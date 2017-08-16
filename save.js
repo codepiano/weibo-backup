@@ -4,6 +4,7 @@
 // ipc
 const {ipcRenderer} = require('electron')
 var isSaving = false
+var fs = require('fs');
 
 $(document).ready(function(){
     var webview = $('#webview')
@@ -46,6 +47,7 @@ $(document).ready(function(){
             var weibo = event.originalEvent.args[1]
             console.log(page)
             console.log(weibo)
+            fs.writeFileSync(""+page, weibo)
         }
     })
 

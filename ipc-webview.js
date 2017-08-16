@@ -8,6 +8,23 @@ ipcRenderer.on('scroll', (event, arg) => {
     scrollToBottom()
 })
 
+// 出现网络问题时点击重试按钮
+guard = setInterval(() => {
+    if(isSaving) {
+        let feedList = document.querySelector("div[node-type='feed_list']")
+        let lazyload = feedList.querySelector("div[node-type='lazyload']")
+        if(lazyload) {
+            let timeout = lazyload.querySelector("p.text")
+            if(timeout === '请求超时, 点击重新载入') {
+                let reloadLink = timeout.querySelector('a')
+                if(reloadLink) {
+                    reloadLink.click()
+                }
+            }
+        }
+    }
+}, 2000)
+
 ipcRenderer.on('save', (event, arg) => {
     // 添加 dom 事件监听
     addMutationObserver()
@@ -64,7 +81,7 @@ function processLazyLoad(mutations){
             if(currentDetailItems.length == default_page_detail_number) {
                 // 已全部加载
                 var texts=[]
-                currentDetailItems.forEach(function(item){
+                currentDetailItems.forEach(item => {
                     texts.push(item.outerHTML)
                 })
                 ipcRenderer.sendToHost('page', currentPage, texts)
@@ -80,14 +97,26 @@ function processLazyLoad(mutations){
                 scrollToBottom()
             }
         } else {
-
+            if(currentPageNumber != totalPageNumber % default_page_detail_number) {
+                scrollToBottom()
+            } else{
+                // 已全部加载
+                var texts=[]
+                currentDetailItems.forEach(item => {
+                    texts.push(item.outerHTML)
+                })
+                ipcRenderer.sendToHost('page', currentPage, texts)
+                global.observer.disconnect()
+                isSaving = false
+                clearInterval(guard)
+            }
         }
     }
 }
 
 function getTotalPageNumber() {
     var totalPageNumber = getWeiboNumber()
-    return totalPageNumber/default_page_detail_number + (totalPageNumber % default_page_detail_number === 0 ? 0 : 1)
+    return Math.ceil(totalPageNumber/default_page_detail_number)
 }
 
 function getCurrentPageNumber() {
@@ -103,7 +132,7 @@ function getCurrentPageNumber() {
 
 function getWeiboDetailItems() {
     var feedList = document.querySelector("div[node-type='feed_list']")
-    return document.querySelectorAll("div[action-type='feed_list_item']")
+    return feedList.querySelectorAll("div[action-type='feed_list_item']")
 }
 
 function goToNextPage() {
@@ -117,3 +146,4 @@ function goToNextPage() {
         };
     }
 }
+
