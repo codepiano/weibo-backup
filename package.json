@@ -14,7 +14,7 @@
   "author": "codepiano",
   "license": "GPL",
   "devDependencies": {
-    "electron": "~1.6.2"
+    "electron": "~15.5.5"
   },
   "dependencies": {
     "jquery": "^3.2.1"
